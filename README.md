@@ -1,8 +1,8 @@
-## STechSolnStore
+# STechSolnStore
 
 A modern e-commerce platform built with React and Vite for selling industrial powder coating equipment and supplies.
 
-# Features
+## Features
 
 - Responsive Design: Fully responsive UI built with Tailwind CSS
 
@@ -18,7 +18,7 @@ A modern e-commerce platform built with React and Vite for selling industrial po
 
 - Testimonials: Customer reviews and feedback section
 
-# Tech Stack
+## Tech Stack
 
 - React - Frontend library
 
