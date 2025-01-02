@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import MyContext from './myContext';
 import { fireDB } from '../../firebase/firebaseConfig';
-import { Timestamp, addDoc, collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { Timestamp, addDoc, collection, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 
 function MyState(props) {
@@ -38,51 +38,80 @@ function MyState(props) {
       toast.success("Product added successfully");
       await getProductData(); // Fetch updated product data
     } catch (error) {
-      console.log(error);
+      console.error("Error adding product:", error);
+      toast.error("Failed to add product");
     } finally {
       setLoading(false);
-      // Reset the products state
-      setProducts({
-        title: '',
-        price: '',
-        imageUrl: '',
-        category: '',
-        description: '',
-        time: Timestamp.now(),
-        date: new Date().toLocaleString("en-US", {
-          month: "short",
-          day: "2-digit",
-          year: "numeric",
-        }),
-      });
+      resetProductState();
     }
   };
 
-  const getProductData = async () => {
+  const updateProduct = async (id, updatedData) => {
+    const productRef = doc(fireDB, "products", id);
     setLoading(true);
     try {
-      const q = query(collection(fireDB, "products"), orderBy("time"));
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const productsArray = [];
-        querySnapshot.forEach((doc) => {
-          productsArray.push({ ...doc.data(), id: doc.id });
-        });
-        setProductList(productsArray);
-        setLoading(false);
+      await updateDoc(productRef, {
+        ...updatedData,
+        time: Timestamp.now(),
       });
-      return () => unsubscribe();
+      toast.success("Product updated successfully");
+      await getProductData(); // Fetch updated product data
     } catch (error) {
-      console.log(error);
+      console.error("Error updating product:", error);
+      toast.error("Failed to update product: " + error.message);
+    } finally {
       setLoading(false);
     }
+  };
+
+  const deleteProduct = async (id) => {
+    const productRef = doc(fireDB, "products", id);
+    setLoading(true);
+    try {
+      await deleteDoc(productRef);
+      toast.success("Product deleted successfully");
+      await getProductData(); // Fetch updated product data
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      toast.error("Failed to delete product");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getProductData = () => {
+    const productRef = collection(fireDB, "products");
+    onSnapshot(productRef, (snapshot) => {
+      const products = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setProductList(products); // Update productList with fetched products
+    });
+  };
+
+  const resetProductState = () => {
+    setProducts({
+      title: '',
+      price: '',
+      imageUrl: '',
+      category: '',
+      description: '',
+      time: Timestamp.now(),
+      date: new Date().toLocaleString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      }),
+    });
   };
 
   useEffect(() => {
-    getProductData();
+    getProductData(); // Fetch products when the component mounts
   }, []);
 
   return (
-    <MyContext.Provider value={{ mode, toggleMode, loading, setLoading, products, setProducts, addProduct, productList }}>
+    <MyContext.Provider value={{ mode, toggleMode, loading, setLoading, products, setProducts, addProduct, updateProduct, deleteProduct, productList }}>
       {props.children}
     </MyContext.Provider>
   );

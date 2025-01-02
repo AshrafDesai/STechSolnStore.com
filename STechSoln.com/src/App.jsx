@@ -20,8 +20,8 @@ import UpdateProduct from "./pages/admin/pages/UpdateProduct";
 
 function App() {
   return (
-    <MyState>
-      <Router>
+    <Router>
+      <MyState>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/order" element={
@@ -38,35 +38,31 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/addproduct" element={
             <ProtectedRoutesForAdmin><AddProduct /></ProtectedRoutesForAdmin>} />
-          <Route path="/updateproduct" element={
+          <Route path="/updateproduct/:id" element={
             <ProtectedRoutesForAdmin><UpdateProduct /></ProtectedRoutesForAdmin>} />
           <Route path="/*" element={<NoPage />} />
         </Routes>
-        <ToastContainer/>
-      </Router>
-    </MyState>
-
-  )
+        <ToastContainer />
+      </MyState>
+    </Router>
+  );
 }
 
-export default App
+export default App;
 
 export const ProtectedRoutes = ({ children }) => {
   if (localStorage.getItem('user')) {
-    return children
-  }
-  else {
-    return <Navigate to='/login' />
+    return children;
+  } else {
+    return <Navigate to='/login' />;
   }
 }
 
-export const ProtectedRoutesForAdmin = ({children}) => {
-  const admin = JSON.parse(localStorage.getItem('user'))
-  console.log(admin.user.email)
-  if (admin.user.email === 'ashrafdesai21@gmail.com') {
-    return children
-  }
-  else {
-    return <Navigate to='/login' />
+export const ProtectedRoutesForAdmin = ({ children }) => {
+  const admin = JSON.parse(localStorage.getItem('user'));
+  if (admin && admin.user && admin.user.email === 'ashrafdesai21@gmail.com') {
+    return children;
+  } else {
+    return <Navigate to='/login' />;
   }
 }

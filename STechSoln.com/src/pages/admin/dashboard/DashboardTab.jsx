@@ -1,17 +1,19 @@
 import React, { useContext } from 'react';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import myContext from '../../../context/data/myContext';
+import MyContext from '../../../context/data/myContext';
 import { MdOutlineProductionQuantityLimits } from 'react-icons/md';
 import { FaUser, FaCartPlus } from 'react-icons/fa';
-import { AiFillShopping, AiFillDelete, AiFillPlusCircle } from 'react-icons/ai'; // Importing AiFillPlusCircle
+import { AiFillShopping } from 'react-icons/ai';
 import { Link } from 'react-router-dom';
 
 function DashboardTab() {
-    const context = useContext(myContext);
-    const { mode, productList, edithandle, deleteProduct } = context;
+    const { mode, productList, deleteProduct } = useContext(MyContext);
 
-    const goToAdd = () => {
-        window.location.href = '/addproduct';
+    const handleDelete = (id) => {
+        const confirmDelete = window.confirm("Are you sure you want to delete this product?");
+        if (confirmDelete) {
+            deleteProduct(id); // Call the delete function from context
+        }
     };
 
     return (
@@ -48,16 +50,15 @@ function DashboardTab() {
                             <div className='px-4 md:px-0 mb-16'>
                                 <h1 className='text-center mb-5 text-3xl font-semibold underline' style={{ color: mode === 'dark' ? 'white' : '' }}>Product Details</h1>
                                 <div className="flex justify-end">
-                                    <div onClick={goToAdd}>
+                                    <Link to="/addproduct">
                                         <button
                                             type="button"
-                                            className="focus:outline-none text-white bg-pink-600 shadow-[inset_0_0_10px_rgba(0,0,0,0.6)] border hover:bg-pink-700 outline-0 font-medium rounded-lg text-sm px-5 py-2.5 mb-2"
-                                            style={{ backgroundColor: mode === 'dark' ? 'rgb(46 49 55)' : '', color: mode === 'dark' ? 'white' : '' }}>
+                                            className="focus:outline-none text-white bg-pink-600 shadow-[inset_0_0_10px_rgba(0,0,0,0.6)] border hover:bg-pink-700 outline-0 font-medium rounded-lg text-sm px-5 py-2.5 mb-2">
                                             <div className="flex gap-2 items-center">
                                                 Add Product <FaCartPlus size={20} />
                                             </div>
                                         </button>
-                                    </div>
+                                    </Link>
                                 </div>
                                 <div className="relative overflow-x-auto">
                                     <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -73,35 +74,30 @@ function DashboardTab() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {productList.map((item, index) => {
-                                                const { title, price, imageUrl, category, date, id } = item; // Assuming 'id' is the unique identifier
-                                                return (
-                                                    <tr key={id} className="bg-gray-50 border-b dark:border-gray-700" style={{ backgroundColor: mode === 'dark' ? 'rgb(46, 49, 55)' : '', color: mode === 'dark' ? 'white' : '' }}>
-                                                        <td className="px-6 py-4 text-black">{index + 1}.</td>
-                                                        <th scope="row" className="px-6 py-4 font-medium text-black whitespace-nowrap">
-                                                            <img className='w-16' src={imageUrl} alt="img" />
-                                                        </th>
-                                                        <td className="px-6 py-4 text-black">{title}</td>
-                                                        <td className="px-6 py-4 text-black">₹{price}</td>
-                                                        <td className="px-6 py-4 text-black">{category}</td>
-                                                        <td className="px-6 py-4 text-black">{date}</td>
-                                                        <td className="px-6 py-4">
-                                                            <div className="flex gap-2">
-                                                                <div className="flex gap-2 cursor-pointer text-black" style={{ color: mode === 'dark' ? 'white' : '' }}>
-                                                                    <div onClick={() => deleteProduct(item)}>
-                                                                        <AiFillDelete className="w-6 h-6" />
-                                                                    </div>
-                                                                    <div>
-                                                                        <Link to={'/updateproduct'} onClick={() => edithandle(item)}>
-                                                                            <AiFillPlusCircle className="w-6 h-6" />
-                                                                        </Link>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
+                                            {productList.length > 0 ? (
+                                                productList.map((product, index) => (
+                                                    <tr key={product.id} className="bg-gray-50 border-b dark:border-gray-700">
+                                                        <td className="px-6 py-4 text-black">{index + 1}</td>
+                                                        <td className="px-6 py-4 text-black">
+                                                            <img className='w-16' src={product.imageUrl} alt={product.title} />
+                                                        </td>
+                                                        <td className="px-6 py-4 text-black">{product.title}</td>
+                                                        <td className="px-6 py-4 text-black">₹{product.price}</td>
+                                                        <td className="px-6 py-4 text-black">{product.category}</td>
+                                                        <td className="px-6 py-4 text-black">{product.date}</td>
+                                                        <td className="px-6 py-4 text-black">
+                                                            <Link to={`/updateproduct/${product.id}`}>
+                                                                <button className="text-blue-500">Edit</button>
+                                                            </Link>
+                                                            <button className="text-red-500 ml-2" onClick={() => handleDelete(product.id)}>Delete</button>
                                                         </td>
                                                     </tr>
-                                                );
-                                            })}
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="7" className="text-center py-4">No products available</td>
+                                                </tr>
+                                            )}
                                         </tbody>
                                     </table>
                                 </div>
@@ -129,21 +125,7 @@ function DashboardTab() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr className="bg-gray-50 border-b dark:border-gray-700" style={{ backgroundColor: mode === 'dark' ? 'rgb(46, 49, 55)' : '', color: mode === 'dark' ? 'white' : '' }}>
-                                            <td className="px-6 py-4 text-black">3393939</td>
-                                            <th scope="row" className="px-6 py-4 font-medium text-black whitespace-nowrap">
-                                                <img className='w-16' src="https://dummyimage.com/720x400" alt="img" />
-                                            </th>
-                                            <td className="px-6 py-4 text-black">Title</td>
-                                            <td className="px-6 py-4 text-black">₹100</td>
-                                            <td className="px-6 py-4 text-black">pots</td>
-                                            <td className="px-6 py-4 text-black">name</td>
-                                            <td className="px-6 py-4 text-black">india</td>
-                                            <td className="px-6 py-4 text-black">82828</td>
-                                            <td className="px-6 py-4 text-black">929929929929</td>
-                                            <td className="px-6 py-4 text-black">kkakka@gmail.com</td>
-                                            <td className="px-6 py-4 text-black">12 Aug 2019</td>
-                                        </tr>
+                                        {/* Order data will go here */}
                                     </tbody>
                                 </table>
                             </div>
@@ -166,15 +148,7 @@ function DashboardTab() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr className="bg-gray-50 border-b dark:border-gray-700" style={{ backgroundColor: mode === 'dark' ? 'rgb(46, 49, 55)' : '', color: mode === 'dark' ? 'white' : '' }}>
-                                            <td className="px-6 py-4 text-black">1.</td>
-                                            <td className="px-6 py-4 text-black">Name</td>
-                                            <td className="px-6 py-4 text-black">Address</td>
-                                            <td className="px-6 py-4 text-black">181919</td>
-                                            <td className="px-6 py-4 text-black">1991818818</td>
-                                            <td className="px-6 py-4 text-black">kkk@gmail.com</td>
-                                            <td className="px-6 py-4 text-black">12 Aug 2019</td>
-                                        </tr>
+                                        {/* User data will go here */}
                                     </tbody>
                                 </table>
                             </div>
